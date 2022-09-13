@@ -30,22 +30,31 @@ protected:
         {
             return true;
         }
-        /*if (rotate(watched, event))
+        if (rotate(watched, event))
         {
-            qDebug() << "rotate" << watched->rotation();
             return true;
-        }*/
+        }
         return false;
     }
 private:
     bool move(QGraphicsItem* item, QEvent *event)
     {
+        if (event->type() == QEvent::GraphicsSceneMouseMove)
+        {
+            auto move_event = static_cast<QGraphicsSceneMouseEvent*>(event);
+            if (move_indicator)
+            {
+                auto delta_point = move_event->scenePos() - move_event->lastScenePos();
+                item->moveBy(delta_point.x(), delta_point.y());
+                return true;
+            }
+        }
         if (event->type() == QEvent::GraphicsSceneMousePress)
         {
             auto press = static_cast<QGraphicsSceneMouseEvent*>(event);
             if (press->button() == Qt::LeftButton)
             {
-                item->setFlag(QGraphicsItem::ItemIsMovable, true);
+                move_indicator = true;
                 item->setCursor(Qt::ClosedHandCursor);
                 return true;
             }
@@ -56,23 +65,36 @@ private:
             if (press->button() == Qt::LeftButton)
             {
                 item->setCursor(QCursor(Qt::ArrowCursor));
-                item->setFlag(QGraphicsItem::ItemIsMovable, false);
+                move_indicator = false;
                 return true;
             }
         }
         return false;
     }
 
-    /*bool rotate(QGraphicsItem* item, QEvent *event)
+    bool rotate(QGraphicsItem* item, QEvent *event)
     {
+        if (event->type() == QEvent::GraphicsSceneMouseMove)
+        {
+            auto move_event = static_cast<QGraphicsSceneMouseEvent*>(event);
+            if (rotate_indicator)
+            {
+                QTransform transform;
+                auto mouse_pos = move_event->pos().toPoint();
+                auto center = item->boundingRect().center();
+                double angle = mouse_pos.x() - center.x();
+                transform.translate(center.x(), center.y()).rotate(angle).translate(-center.x(), -center.y());
+                item->setTransform(transform);
+                return true;
+            }
+        }
         if (event->type() ==  QEvent::GraphicsSceneMousePress)
         {
             auto wheel = static_cast<QGraphicsSceneMouseEvent*>(event);
             if (wheel->button() == Qt::MiddleButton)
             {
-                //item->setFlag(QGraphicsItem::ItemRotationChange);
-                item->setFlag(QGraphicsItem::ItemIgnoresTransformations, true);
                 item->setCursor(Qt::CursorShape::SizeVerCursor);
+                rotate_indicator = true;
                 return true;
             }
 
@@ -82,14 +104,16 @@ private:
             auto wheel = static_cast<QGraphicsSceneMouseEvent*>(event);
             if (wheel->button() == Qt::MiddleButton)
             {
+                rotate_indicator = false;
                 item->setCursor(QCursor(Qt::ArrowCursor));
-                item->setFlag(QGraphicsItem::ItemIgnoresTransformations, false);
                 return true;
             }
 
         }
         return false;
-    }*/
+    }
+    bool move_indicator{false};
+    bool rotate_indicator{false};
 };
 
 MainWindow::MainWindow(QWidget *parent)
@@ -166,8 +190,12 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
         }
         if (mouse_event->button() == Qt::RightButton)
         {
-            scene.removeItem(scene.itemAt(ui->graphicsView->mapToScene(mouse_event->x(), mouse_event->y()), QTransform()));
-            return true;
+            auto figure = scene.itemAt(ui->graphicsView->mapToScene(mouse_event->x(), mouse_event->y()), QTransform());
+            if (figure)
+            {
+                scene.removeItem(figure);
+                return true;
+            }
         }
 
     }
