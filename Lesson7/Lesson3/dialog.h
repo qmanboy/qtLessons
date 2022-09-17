@@ -3,6 +3,7 @@
 #include <QDialog>
 #include <QDebug>
 #include <QTranslator>
+#include <QTimer>
 
 namespace Ui {
 class Dialog;
@@ -18,14 +19,11 @@ public:
 
 public slots:
     void rec_data(QByteArray const& text);
-    void set_lang(const QString& lang);
+    void set_lang();
 
 private:    
     void init();
     Ui::Dialog *ui;
-
-    QString langFilePath{};
-
 };
 
 #endif // DIALOG_H

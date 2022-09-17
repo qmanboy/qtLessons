@@ -17,6 +17,7 @@
 #include <QFileInfoList>
 #include <QCommonStyle>
 #include <QSize>
+#include <QTimer>
 
 
 class pathwidget : public QWidget
@@ -25,29 +26,34 @@ class pathwidget : public QWidget
 public:
     pathwidget(QWidget *parent = nullptr);
     ~pathwidget(){delete list; list = nullptr;};
-    //void clearTree();
     QFileSystemModel *getCurrentFsModel() const {return fsModel;}
-    //QTreeView *getTree() {return tree;}
     QListView *getList() {return listView;}
     QComboBox *getCombo() {return disckSelBox;}
     QLineEdit *getPathString() {return pathString;}
     QPushButton *getUpButton() {return upButton;}
+    QLineEdit *getSearchString() {return searchString;}
+    QPushButton *getSearchButton() {return searchButton;}
 private:
-    //QTreeView *tree;
     QListView *listView{nullptr};
     QComboBox *disckSelBox{nullptr};
     QLineEdit *pathString{nullptr};
     QFileInfoList *list{nullptr};
     QPushButton *upButton{nullptr};
+    QPushButton *searchButton{nullptr};
+    QLineEdit *searchString{nullptr};
 
-    //QStandardItemModel *model{nullptr};
     QFileSystemModel *fsModel{nullptr};
     QString currentPath;
-    //QQueue<QString> pathParser(const QString& str);
+    QString dirFilter{};
 
+signals:
+    void openFile(const QString& path);
+    void modelRebuilded(const QString& str);
 
 public slots:
     void rebuild_model(const QString& str);
+    void set_focus(const QString& str);
+    void set_dir_filter(const QString& str);
 
 private slots:
     void chgDisk(int index);

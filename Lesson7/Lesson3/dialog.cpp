@@ -19,15 +19,10 @@ void Dialog::init()
     this->setFixedSize(this->size());
     this->setWindowTitle(tr("Help"));
     ui->textBrowser->setFixedSize(this->size());
-    langFilePath = "D:/GB/QtProjects/Lesson3/QtLanguage_";
 }
 
-void Dialog::set_lang(const QString& lang)
+void Dialog::set_lang()
 {
-    QTranslator translator;
-    translator.load(langFilePath+lang);
-    qApp->installTranslator(&translator);
-    ui->retranslateUi(this);
     this->setWindowTitle(tr("Help"));
 }
 

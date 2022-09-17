@@ -16,6 +16,7 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     pathwidget.cpp \
+    search_thread.cpp \
     settings.cpp
 
 HEADERS += \
@@ -23,6 +24,7 @@ HEADERS += \
     hotkeys.h \
     mainwindow.h \
     pathwidget.h \
+    search_thread.h \
     settings.h
 
 FORMS += \

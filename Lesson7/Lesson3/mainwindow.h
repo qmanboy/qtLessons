@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 #include "hotkeys.h"
 #include "pathwidget.h"
+#include "search_thread.h"
 
 #include <QMainWindow>
 #include <QDebug>
@@ -21,6 +22,33 @@
 #include <QTextDocumentFragment>
 #include <QTextEdit>
 #include <QFontDialog>
+#include <QDateTime>
+#include <QStyle>
+
+struct ColorTheme: public QWidget
+{
+    Q_OBJECT
+public:
+    ColorTheme()
+    {
+        light = this->style()->standardPalette();
+        dark.setColor(QPalette::Window, QColor(53, 53, 53));
+        dark.setColor(QPalette::WindowText, Qt::white);
+        dark.setColor(QPalette::Base, QColor(25, 25, 25));
+        dark.setColor(QPalette::AlternateBase, QColor(53, 53, 53));
+        dark.setColor(QPalette::ToolTipBase, Qt::white);
+        dark.setColor(QPalette::ToolTipText, Qt::white);
+        dark.setColor(QPalette::Text, Qt::white);
+        dark.setColor(QPalette::Button, QColor(53, 53, 53));
+        dark.setColor(QPalette::ButtonText, Qt::white);
+        dark.setColor(QPalette::BrightText, Qt::red);
+        dark.setColor(QPalette::Link, QColor(42, 130, 218));
+        dark.setColor(QPalette::Highlight, QColor(42, 130, 218));
+        dark.setColor(QPalette::HighlightedText, Qt::black);
+    }
+    QPalette dark;
+    QPalette light;
+};
 
 enum class Align
 {
@@ -50,11 +78,15 @@ public:
 
 signals:
     void sendData(QByteArray const& text);
-    void sendLang(const QString& lang);    
+    void sendLang(const QString& lang);
+    void newSendLang();
+    void sendLangToSet(const QString& lang);
+    void disableLang();
     void sendHotKeys(QVector<HotKey>* hotkeys);
     void initLang(const QString& lang);
     void sendFilePath(const QString& path);
     void sendFilePathToModel(const QString& path);
+    void updateLang();
 
 
     void hotkeys_open();
@@ -64,6 +96,11 @@ signals:
     void hotkeys_print();
 
     void setEmpty(bool empty);
+    void indexSignal(int index);
+
+    void senData(const QString& dir, const QString& file);
+    void searchSignal();
+    void sendDirFilter(const QString& filter);
 
 public slots:
     void create_menu();
@@ -81,9 +118,10 @@ private slots:
     void print_slot();
     void quit_slot();
     void new_doc_slot();
-    void enable_help_button();
-    void enable_settings_button();
+    void close_help();
+    void close_settings();
     void set_lang(const QString& lang);
+    void update_lang(const QString& lang);
     void set_filepath_to_tab(const QString& str);
 
     void update_tabs_slot();
@@ -92,12 +130,24 @@ private slots:
     void set_font();
     void set_align(Align align);
 
+    void custom_context(const QPoint& point);
+    void remove_tab(int index);    
+
+    void search_slot() ;
+
 private:
     void init();
     void initText();
     bool checkTabs(const QString& path);
+    bool pathWidgetOpenFileFlag{false};
+    bool helpIsOpen{false};
+    bool settIsOpen{false};
+    bool langIsEnabled{true};
     void setFontBuf(QTextCharFormat charFormat);
     void clearFontBuf();
+    void createTextEdit();
+    void addDateTime(const QString& type);
+
 
     QKeySequence getHotKey(Action action);
     QTextCharFormat charFormatBuffer;
@@ -141,9 +191,11 @@ private:
     QString alignLeftText{};
     QString alignRightText{};
     QString alignCenterText{};
+    QString searchButtonText{};
 
     ResourseReadErrorMsg errorMsg;
     QString mainWindowLanguage{};
     QVector<HotKey> hotKeys;
+    ColorTheme colorTheme;
 };
 #endif // MAINWINDOW_H

@@ -32,10 +32,12 @@ bool Settings::eventFilter(QObject *watched, QEvent *event)
 
 void Settings::translate(const QString& lang)
 {
-    translator.load(langFilePath+lang);
-    qApp->installTranslator(&translator);
-    ui->retranslateUi(this);
-    this->initText();
+    if (translator.load(lang))
+    {
+        qApp->installTranslator(&translator);
+        ui->retranslateUi(this);
+        this->initText();
+    }
 }
 
 void Settings::init()
@@ -43,13 +45,13 @@ void Settings::init()
     ui->setupUi(this);
 
     connect(ui->pushButtonOk, &QPushButton::clicked, this, &Settings::on_click_accept);
-    connect(this, &Settings::updateHostKeysView, this, &Settings::fillHotKeys);
+    connect(this, &Settings::updateHostKeysView, this, &Settings::fill_hotkeys);
 
     this->setFixedSize(this->size());
     ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->radioButtonEng->setChecked(true);
 
-    if (qApp->palette() == style()->standardPalette())
+    if (qApp->palette() == colorTheme.light)
         ui->radioButtonLight->setChecked(true);
     else
         ui->radioButtonDark->setChecked(true);
@@ -65,14 +67,19 @@ void Settings::init()
                 hotkeys->setData(ui->tableView->selectionModel()->currentIndex(), "", Qt::EditRole);
             });
     this->initText();    
-
-    langFilePath = "D:/GB/QtProjects/Lesson3/QtLanguage_";
 }
 
 void Settings::set_lang(const QString& lang)
 {
-    lang == "ru" ? ui->radioButtonRu->setChecked(true) : ui->radioButtonEng->setChecked(true);
-    translate(lang);
+    if (ui->groupBoxLang->isEnabled())
+    {
+        langFilePath = lang;
+        auto l = lang.mid(lang.lastIndexOf('_')+1, lang.count());
+        l == "ru" ? ui->radioButtonRu->setChecked(true) : ui->radioButtonEng->setChecked(true);
+        this->translate(lang);
+    }
+    else
+        ui->radioButtonEng->setChecked(true);
 }
 
 void Settings::initText()
@@ -99,12 +106,12 @@ void Settings::initHotKeysView()
     ui->tableView->verticalHeader()->hide();
 }
 
-void Settings::fillHotKeys(QVector<HotKey>* Hkeys)
+void Settings::fill_hotkeys(QVector<HotKey>* Hkeys)
 {
     hotkeys->clear();
     initHotKeysView();
     size_t row = 0;
-    for (const HotKey &key : *Hkeys)
+    for (const HotKey &key : std::as_const(*Hkeys))
     {
 
         QList<QStandardItem*> list;
@@ -125,10 +132,15 @@ void Settings::fillHotKeys(QVector<HotKey>* Hkeys)
 
 const QString Settings::checkLang()
 {
-    if (ui->radioButtonRu->isChecked())
-        return "ru";
+    if (ui->groupBoxLang->isEnabled())
+    {
+        if (ui->radioButtonRu->isChecked())
+            return "ru";
+        else
+            return "eng";
+    }
     else
-        return "eng";
+        return NULL;
 }
 
 void Settings::checkColorSchemeSignal()
@@ -141,39 +153,32 @@ void Settings::checkColorSchemeSignal()
 
 void Settings::set_dark_scheme()
 {
-    QPalette darkPalette;
-
-    darkPalette.setColor(QPalette::Window, QColor(53, 53, 53));
-    darkPalette.setColor(QPalette::WindowText, Qt::white);
-    darkPalette.setColor(QPalette::Base, QColor(25, 25, 25));
-    darkPalette.setColor(QPalette::AlternateBase, QColor(53, 53, 53));
-    darkPalette.setColor(QPalette::ToolTipBase, Qt::white);
-    darkPalette.setColor(QPalette::ToolTipText, Qt::white);
-    darkPalette.setColor(QPalette::Text, Qt::white);
-    darkPalette.setColor(QPalette::Button, QColor(53, 53, 53));
-    darkPalette.setColor(QPalette::ButtonText, Qt::white);
-    darkPalette.setColor(QPalette::BrightText, Qt::red);
-    darkPalette.setColor(QPalette::Link, QColor(42, 130, 218));
-    darkPalette.setColor(QPalette::Highlight, QColor(42, 130, 218));
-    darkPalette.setColor(QPalette::HighlightedText, Qt::black);
-
-    qApp->setPalette(darkPalette);
+    qApp->setPalette(colorTheme.dark);
 }
 
 void Settings::set_light_scheme()
 {
-     qApp->setPalette(style()->standardPalette());
+    qApp->setPalette(colorTheme.light);
+}
+
+void Settings::disable_lang()
+{
+    ui->groupBoxLang->setDisabled(true);
 }
 
 
 void Settings::on_click_accept()
 {
     checkColorSchemeSignal();
-    QTranslator translator;
     const QString lang = this->checkLang();
-    emit sendLang(lang);
-    emit updateHostKeysView(hotKeysVector);
-    translate(lang);
+    if (!lang.isEmpty())
+    {
+        auto langPath = langFilePath.mid(0, langFilePath.lastIndexOf('_')+1) + lang;
+        emit sendLang(lang);
+        this->translate(langPath);
+        emit sendLang(lang);
+        emit updateHostKeysView(hotKeysVector);
+    }
 }
 
 

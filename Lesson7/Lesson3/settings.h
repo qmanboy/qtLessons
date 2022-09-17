@@ -1,6 +1,7 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 #include "hotkeys.h"
+#include "mainwindow.h"
 
 #include <QDialog>
 #include <QStandardItem>
@@ -28,27 +29,31 @@ private slots:
 
 public slots:
     void set_lang(const QString& lang);
-    void fillHotKeys(QVector<HotKey>* Hkeys);
+    void fill_hotkeys(QVector<HotKey>* Hkeys);
 
     void set_dark_scheme();
     void set_light_scheme();
+
+    void disable_lang();
 
 
 signals:
     void addHotKeys(QVector<QString>& keys);
     void sendLang(const QString& language);
+    void newSendLang();
     void updateHostKeysView(QVector<HotKey>* updatedKeysVector);
 
     void darkScheme();
     void lightScheme();
+
 
 private:
     void init();
     void initText();
     void translate(const QString& lang);
 
+
     Ui::Settings *ui;
-    QTranslator translator;
 
     QString langFilePath{};
     QStandardItemModel *hotkeys;
@@ -61,6 +66,8 @@ private:
     QVector<QString>& checkHotKeys();
     QVector<HotKey>* hotKeysVector;
     void fillHotKeysVector(size_t position, Qt::KeyboardModifiers modif, Qt::Key key);
+    ColorTheme colorTheme;    
+    QTranslator translator;
 };
 
 #endif // SETTINGS_H
